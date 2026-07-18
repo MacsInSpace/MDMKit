@@ -22,8 +22,8 @@
     PrivateData          = @{
         PSData = @{
             Tags         = @('Mosyle', 'MDM', 'Apple', 'macOS', 'iOS', 'Education', 'MacAdmins', 'REST', 'API')
-            LicenseUri   = 'https://github.com/MacsInSpace/JamfKit/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/MacsInSpace/JamfKit'
+            LicenseUri   = 'https://github.com/MacsInSpace/MDMKit/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/MacsInSpace/MDMKit'
             ReleaseNotes = 'Initial release: JWT session core (accessToken + admin email/password) with 24h auto-renewal, generic Invoke-MosyleApi covering the whole API, and typed cmdlets for listing users and devices.'
             Prerelease   = 'alpha'
         }

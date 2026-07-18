@@ -71,8 +71,8 @@
     PrivateData          = @{
         PSData = @{
             Tags         = @('Jamf', 'JamfPro', 'MDM', 'Apple', 'macOS', 'iOS', 'MacAdmins', 'REST', 'API')
-            LicenseUri   = 'https://github.com/MacsInSpace/JamfKit/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/MacsInSpace/JamfKit'
+            LicenseUri   = 'https://github.com/MacsInSpace/MDMKit/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/MacsInSpace/MDMKit'
             ReleaseNotes = 'Initial scaffold: session/auth core (OAuth client credentials + user bearer), request engine with retry/backoff, paging, Classic XML support, first typed cmdlets and MUT-compatible bulk updates.'
             Prerelease   = 'alpha'
         }

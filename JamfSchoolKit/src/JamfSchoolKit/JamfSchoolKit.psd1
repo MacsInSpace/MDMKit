@@ -35,8 +35,8 @@
     PrivateData          = @{
         PSData = @{
             Tags         = @('Jamf', 'JamfSchool', 'MDM', 'Apple', 'iPad', 'Education', 'MacAdmins', 'REST', 'API')
-            LicenseUri   = 'https://github.com/MacsInSpace/JamfKit/blob/main/LICENSE'
-            ProjectUri   = 'https://github.com/MacsInSpace/JamfKit'
+            LicenseUri   = 'https://github.com/MacsInSpace/MDMKit/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/MacsInSpace/MDMKit'
             ReleaseNotes = 'Initial release: session core (Network ID + API key), hardened request engine with protocol-version header handling, typed cmdlets for devices (incl. MDM-style commands), users, classes and device/user groups.'
             Prerelease   = 'alpha'
         }
