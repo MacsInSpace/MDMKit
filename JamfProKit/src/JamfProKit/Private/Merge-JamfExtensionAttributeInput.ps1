@@ -1,4 +1,4 @@
-function Merge-JamfExtensionAttributeInput {
+﻿function Merge-JamfExtensionAttributeInput {
     <#
     .SYNOPSIS
         Merges MUT-style EA_<id> CSV columns with an explicit -ExtensionAttribute hashtable.

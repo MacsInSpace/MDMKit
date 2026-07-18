@@ -6,6 +6,23 @@ All notable changes to JamfProKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0-alpha] - 2026-07-18
+
+### Added
+- Category CRUD: `Get/New/Set/Remove-JamfCategory` (Jamf Pro API v1/categories).
+- Group CRUD across all three types (`-Type Computer|MobileDevice|User`):
+  `Get/New/Set/Remove-JamfGroup` for smart and static groups, plus
+  `New-JamfCriterion` for building smart group criteria with auto-numbered
+  priorities.
+- Package CRUD: `Get/New/Set/Remove-JamfPackage` (Jamf Pro API v1/packages,
+  Jamf Pro 11.5+).
+- `Publish-JamfPackage`: uploads a package file to cloud distribution via
+  POST /v1/packages/{id}/upload — finds or creates the record by fileName,
+  streams the file as multipart form data, and can `-WaitForHash` until Jamf
+  computes the server-side hash.
+- Request engine: multipart `-Form` support and per-request `-TimeoutSec`
+  (uploads default to 1 hour).
+
 ## [0.2.0-alpha] - 2026-07-18
 
 ### Added

@@ -45,6 +45,20 @@ Set-JamfStaticGroupMember -GroupId 8 -Type User -Replace (Import-Csv users.csv).
 Set-JamfPrestageScope -PrestageId 3 -Add C02AAA111, C02BBB222
 ```
 
+### Groups and packages
+
+```powershell
+# Smart group from criteria (priorities auto-numbered)
+New-JamfGroup -Name 'Pre-Sequoia Macs' -Smart -Criteria (
+    New-JamfCriterion -Name 'Operating System Version' -SearchType 'less than' -Value '15.0'
+)
+
+# Upload a package: finds or creates the record by file name, uploads to JCDS,
+# optionally waits for the server-side hash before you deploy
+Publish-JamfPackage -Path ./Firefox-128.0.pkg -WaitForHash
+Get-ChildItem ./out/*.pkg | ForEach-Object { Publish-JamfPackage -Path $_.FullName }
+```
+
 ### Anything the module doesn't type yet
 
 ```powershell
@@ -53,7 +67,7 @@ Invoke-JamfApi -Method POST -Path 'api/v1/buildings' -Body @{ name = 'HQ' }
 Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<department><name>IT</name></department>'
 ```
 
-## Cmdlets (v0.1)
+## Cmdlets (v0.3)
 
 | Area | Cmdlets |
 |---|---|
@@ -61,6 +75,9 @@ Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<departme
 | Escape hatch | `Invoke-JamfApi` |
 | Inventory | `Get-JamfComputer`, `Get-JamfMobileDevice`, `Get-JamfProVersion` |
 | Scripts | `Get-JamfScript`, `New-JamfScript`, `Set-JamfScript`, `Remove-JamfScript` |
+| Categories | `Get-JamfCategory`, `New-JamfCategory`, `Set-JamfCategory`, `Remove-JamfCategory` |
+| Groups | `Get-JamfGroup`, `New-JamfGroup`, `Set-JamfGroup`, `Remove-JamfGroup`, `New-JamfCriterion` |
+| Packages | `Get-JamfPackage`, `New-JamfPackage`, `Set-JamfPackage`, `Remove-JamfPackage`, `Publish-JamfPackage` |
 | Policies | `Get-JamfPolicy` |
 | Bulk (MUT) | `Update-JamfComputer`, `Update-JamfMobileDevice`, `Update-JamfUser`, `Set-JamfStaticGroupMember`, `Set-JamfPrestageScope` |
 
@@ -68,7 +85,8 @@ All destructive verbs support `-WhatIf`/`-Confirm`. All cmdlets accept `-Session
 
 ## Roadmap
 
-- Typed CRUD for groups, categories, buildings, departments, extension attributes, packages (incl. JCDS2 upload), prestages, MDM commands, LAPS
+- Typed CRUD for buildings, departments, extension attributes, prestages, MDM commands, LAPS
+- Direct-to-S3 JCDS2 multipart upload (for very large packages / resumable transfers)
 - Spec-driven generic cmdlets fed by your instance's live OpenAPI schema (`/api/schema`) with tab completion
 - Jamf Platform API gateway auth (`auth_provider: platform`)
 - Throttled parallel bulk mode

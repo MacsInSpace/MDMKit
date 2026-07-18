@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'JamfProKit.psm1'
-    ModuleVersion        = '0.2.0'
+    ModuleVersion        = '0.3.0'
     GUID                 = 'b7f3d9e4-2a61-4c8f-9d05-8e1a6f4c3b27'
     Author               = 'Craig Hair'
     CompanyName          = 'Unknown'
@@ -25,6 +25,20 @@
         'Update-JamfMobileDevice'
         'Update-JamfUser'
         'Set-JamfPrestageScope'
+        'Get-JamfCategory'
+        'New-JamfCategory'
+        'Set-JamfCategory'
+        'Remove-JamfCategory'
+        'Get-JamfGroup'
+        'New-JamfGroup'
+        'Set-JamfGroup'
+        'Remove-JamfGroup'
+        'New-JamfCriterion'
+        'Get-JamfPackage'
+        'New-JamfPackage'
+        'Set-JamfPackage'
+        'Remove-JamfPackage'
+        'Publish-JamfPackage'
         'Set-JamfStaticGroupMember'
     )
     CmdletsToExport      = @()

@@ -26,6 +26,9 @@
 
         [pscredential] $Credential,
 
+        # multipart/form-data payload (e.g. package upload); mutually exclusive with Body.
+        [hashtable] $Form,
+
         [int] $TimeoutSec = 300
     )
 
@@ -43,6 +46,7 @@
     }
     if ($null -ne $Headers -and $Headers.Count -gt 0) { $params['Headers'] = $Headers }
     if ($null -ne $Body) { $params['Body'] = $Body }
+    if ($null -ne $Form) { $params['Form'] = $Form }
     if ($ContentType) { $params['ContentType'] = $ContentType }
     if ($null -ne $WebSession) { $params['WebSession'] = $WebSession }
     if ($null -ne $Credential) {

@@ -34,6 +34,11 @@
 
         [string] $Accept = 'application/json',
 
+        # multipart/form-data payload (e.g. package upload); bypasses Body serialization.
+        [hashtable] $Form,
+
+        [int] $TimeoutSec = 300,
+
         [int] $MaxRetries = 4
     )
 
@@ -71,8 +76,19 @@
                 Accept        = $Accept
             }
             Write-Verbose "$Method $uri (attempt $($attempt + 1))"
-            $result = Invoke-JamfHttp -Uri $uri -Method $Method -Headers $headers `
-                -Body $requestBody -ContentType $ContentType -WebSession $Session.WebSession
+            $httpParams = @{
+                Uri        = $uri
+                Method     = $Method
+                Headers    = $headers
+                WebSession = $Session.WebSession
+                TimeoutSec = $TimeoutSec
+            }
+            if ($null -ne $Form) { $httpParams['Form'] = $Form }
+            else {
+                if ($null -ne $requestBody) { $httpParams['Body'] = $requestBody }
+                if ($ContentType) { $httpParams['ContentType'] = $ContentType }
+            }
+            $result = Invoke-JamfHttp @httpParams
         }
         finally {
             $tokenPlain = $null
