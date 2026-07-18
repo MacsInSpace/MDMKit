@@ -6,6 +6,23 @@ All notable changes to JamfProKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0-alpha] - 2026-07-18
+
+### Added
+- **Spec-driven generic layer** — first of its kind for PowerShell: the module
+  reads the connected instance's own OpenAPI spec (`GET /api/schema`) on first
+  use, distills it into a compact index cached on disk per host + Jamf Pro
+  version (self-refreshing on server upgrades), and drives:
+  - `Get-JamfObject` / `New-JamfObject` / `Set-JamfObject` / `Remove-JamfObject`
+    — any plain collection/item endpoint on the Jamf Pro API, auto-selecting the
+    newest non-deprecated API version (override with `-ApiVersion`), auto-paging
+    list endpoints, and using PUT or PATCH as each endpoint documents.
+  - `New-JamfObjectTemplate` — schema-accurate request body skeletons (enums
+    pre-filled with their first allowed value, readOnly fields omitted).
+  - `Get-JamfApiResource` — live discovery of what your instance exposes,
+    with deprecation flags.
+  - Tab completion for `-Resource` (cache-only; never hits the network).
+
 ## [0.4.0-alpha] - 2026-07-18
 
 ### Added

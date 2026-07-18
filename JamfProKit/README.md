@@ -59,7 +59,26 @@ Publish-JamfPackage -Path ./Firefox-128.0.pkg -WaitForHash
 Get-ChildItem ./out/*.pkg | ForEach-Object { Publish-JamfPackage -Path $_.FullName }
 ```
 
-### Anything the module doesn't type yet
+### The whole API, spec-driven
+
+The generic layer reads your instance's own OpenAPI spec (`/api/schema`) on first use and
+caches it per host + Jamf Pro version — so coverage tracks whatever your server runs,
+including endpoints added after this module shipped. `-Resource` tab-completes.
+
+```powershell
+Get-JamfApiResource -Name '*enrollment*'        # discover what your instance offers
+Get-JamfObject enrollment-customizations        # list (auto-paged), newest API version
+Get-JamfObject webhooks -Id 5
+
+$body = New-JamfObjectTemplate webhooks          # schema-accurate skeleton: every field,
+$body.name = 'Inventory updated'                 # enums pre-filled, readOnly omitted
+New-JamfObject webhooks -Body $body
+
+Set-JamfObject mobile-devices -Id 31 -Body @{ name = 'Cart-01' }   # uses PATCH where documented
+Remove-JamfObject webhooks -Id 5 -WhatIf
+```
+
+### Raw escape hatch
 
 ```powershell
 Invoke-JamfApi -Path 'api/v1/buildings'
@@ -67,7 +86,7 @@ Invoke-JamfApi -Method POST -Path 'api/v1/buildings' -Body @{ name = 'HQ' }
 Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<department><name>IT</name></department>'
 ```
 
-## Cmdlets (v0.4)
+## Cmdlets (v0.5)
 
 | Area | Cmdlets |
 |---|---|
@@ -82,6 +101,7 @@ Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<departme
 | Extension attributes | `Get/New/Set/Remove-JamfExtensionAttribute` (computer + mobile device) |
 | MDM | `Send-JamfMdmCommand`, `Invoke-JamfFrameworkRedeploy` |
 | LAPS | `Get-JamfLapsAccount`, `Get-JamfLapsPassword`, `Get-JamfLapsSetting`, `Set-JamfLapsSetting` |
+| Spec-driven (full API) | `Get-JamfObject`, `New-JamfObject`, `Set-JamfObject`, `Remove-JamfObject`, `New-JamfObjectTemplate`, `Get-JamfApiResource` |
 | Policies | `Get-JamfPolicy` |
 | Bulk (MUT) | `Update-JamfComputer`, `Update-JamfMobileDevice`, `Update-JamfUser`, `Set-JamfStaticGroupMember`, `Set-JamfPrestageScope` |
 
@@ -91,7 +111,6 @@ All destructive verbs support `-WhatIf`/`-Confirm`. All cmdlets accept `-Session
 
 - Typed CRUD for prestage enrollments, policies (write), configuration profiles
 - Direct-to-S3 JCDS2 multipart upload (for very large packages / resumable transfers)
-- Spec-driven generic cmdlets fed by your instance's live OpenAPI schema (`/api/schema`) with tab completion
 - Jamf Platform API gateway auth (`auth_provider: platform`)
 - Throttled parallel bulk mode
 - `JamfSchoolKit` sibling module

@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'JamfProKit.psm1'
-    ModuleVersion        = '0.4.0'
+    ModuleVersion        = '0.5.0'
     GUID                 = 'b7f3d9e4-2a61-4c8f-9d05-8e1a6f4c3b27'
     Author               = 'Craig Hair'
     CompanyName          = 'Unknown'
@@ -57,6 +57,12 @@
         'Get-JamfLapsPassword'
         'Get-JamfLapsSetting'
         'Set-JamfLapsSetting'
+        'Get-JamfObject'
+        'New-JamfObject'
+        'Set-JamfObject'
+        'Remove-JamfObject'
+        'New-JamfObjectTemplate'
+        'Get-JamfApiResource'
         'Set-JamfStaticGroupMember'
     )
     CmdletsToExport      = @()
