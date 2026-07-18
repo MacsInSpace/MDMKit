@@ -27,13 +27,30 @@ Invoke-MosyleApi -Endpoint listclasses
 Invoke-MosyleApi -Endpoint wipe -Body @{ devices = @($udid) } -WhatIf
 ```
 
-## Cmdlets (v0.1)
+### Device commands and user provisioning
+
+```powershell
+# Bulk device commands via /bulkops — target by UDID and/or device group ID
+Invoke-MosyleDeviceCommand -Command Restart -Group 210
+Get-MosyleDevice -Os ios -Tag Retired | Invoke-MosyleDeviceCommand -Command Wipe -RevokeVppLicenses -Confirm:$false
+Invoke-MosyleDeviceCommand -Command Lock -Device $udid -Pincode 123456 -LockMessage 'Return to IT'
+
+# Device attributes (batched into one request when piped)
+Set-MosyleDeviceAttribute -SerialNumber F9FXH12ABC -AssetTag IPAD-042 -Name 'Library iPad 7'
+
+# Bulk user create/update — piped rosters go in one call
+Import-Csv roster.csv | New-MosyleUser
+Set-MosyleUser -Id student.1 -Email new.address@school.org
+```
+
+## Cmdlets (v0.2)
 
 | Area | Cmdlets |
 |---|---|
 | Session | `Connect-Mosyle`, `Disconnect-Mosyle`, `Get-MosyleSession` |
 | Whole API | `Invoke-MosyleApi` |
-| Typed reads | `Get-MosyleUser`, `Get-MosyleDevice` |
+| Devices | `Get-MosyleDevice`, `Invoke-MosyleDeviceCommand`, `Set-MosyleDeviceAttribute` |
+| Users | `Get-MosyleUser`, `New-MosyleUser`, `Set-MosyleUser` |
 
 ## Status &amp; roadmap
 

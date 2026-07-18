@@ -182,4 +182,160 @@ Describe 'Typed cmdlets' {
         Invoke-MosyleApi -Session $script:session -Endpoint wipe -Body @{ devices = @('u1') } -WhatIf
         Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 0 -Exactly
     }
+
+    It 'Get-MosyleDevice passes the full filter set under options' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; devices = @() } }
+        Get-MosyleDevice -Session $script:session -Os mac -SerialNumber S1, S2 -Column serial_number -Page 2 | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.options.os -eq 'mac' -and
+            (@($Body.options.serial_numbers) -join ',') -eq 'S1,S2' -and
+            $Body.options.page -eq 2 -and
+            (@($Body.options.specific_columns) -join ',') -eq 'serial_number'
+        }
+    }
+}
+
+Describe 'Invoke-MosyleDeviceCommand' {
+    BeforeEach {
+        $script:session = New-TestMosyleSession
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ status = 'COMMAND_SENT'; info = 'Command sent successfully.' }) }
+        }
+    }
+
+    It 'restarts a device group via /bulkops with string group IDs' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command Restart -Group 210 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'bulkops' -and
+            $Body.elements[0].operation -eq 'restart_devices' -and
+            $Body.elements[0].groups[0] -eq '210'
+        }
+    }
+
+    It 'accumulates piped UDIDs into one wipe element with options' {
+        $devices = @([pscustomobject]@{ deviceudid = 'U1' }, [pscustomobject]@{ deviceudid = 'U2' })
+        $devices | Invoke-MosyleDeviceCommand -Session $script:session -Command Wipe -RevokeVppLicenses -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'wipe_devices' -and
+            (@($Body.elements[0].devices) -join ',') -eq 'U1,U2' -and
+            $Body.elements[0].options.RevokeVPPLicenses -eq 'true'
+        }
+    }
+
+    It 'builds a lock element with pincode and message at element level' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command Lock -Device U1 `
+            -Pincode 123456 -LockMessage 'Return to IT' -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'lock_device' -and
+            $Body.elements[0].pincode -eq '123456' -and
+            $Body.elements[0].lockmessage -eq 'Return to IT'
+        }
+    }
+
+    It 'sends lost_message for activation lock' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command EnableActivationLock -Device U1 `
+            -LostMessage 'Lost device' -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'enable_activationlock' -and
+            $Body.elements[0].lost_message -eq 'Lost device'
+        }
+    }
+
+    It 'warns on devices_notfound in the response' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ devices_notfound = @('U9'); status = 'COMMAND_SENT'; info = 'ok' }) }
+        }
+        Invoke-MosyleDeviceCommand -Session $script:session -Command Restart -Device U9 -Confirm:$false `
+            -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        $warnings | Should -Not -BeNullOrEmpty
+    }
+
+    It 'throws when no target is supplied' {
+        { Invoke-MosyleDeviceCommand -Session $script:session -Command Restart -Confirm:$false } |
+            Should -Throw '*-Device*-Group*'
+    }
+
+    It 'makes no API call under -WhatIf' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command Wipe -Device U1 -WhatIf | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 0 -Exactly
+    }
+}
+
+Describe 'Set-MosyleDeviceAttribute' {
+    BeforeEach {
+        $script:session = New-TestMosyleSession
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; elements = @() } }
+    }
+
+    It 'sends serialnumber-keyed elements with comma-joined tags to /devices' {
+        Set-MosyleDeviceAttribute -Session $script:session -SerialNumber XABC -Tag 'Lab', '1:1' -Name 'iPad 7' -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'devices' -and
+            $Body.elements[0].serialnumber -eq 'XABC' -and
+            $Body.elements[0].tags -eq 'Lab,1:1' -and
+            $Body.elements[0].name -eq 'iPad 7'
+        }
+    }
+
+    It 'batches piped rows into a single request' {
+        $rows = @(
+            [pscustomobject]@{ SerialNumber = 'S1'; AssetTag = 'A1' }
+            [pscustomobject]@{ SerialNumber = 'S2'; AssetTag = 'A2' }
+        )
+        $rows | Set-MosyleDeviceAttribute -Session $script:session -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            @($Body.elements).Count -eq 2 -and $Body.elements[1].asset_tag -eq 'A2'
+        }
+    }
+}
+
+Describe 'User create/update' {
+    BeforeEach {
+        $script:session = New-TestMosyleSession
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; elements = @([pscustomobject]@{ id = 'student.1'; status = 'OK' }) }
+        }
+    }
+
+    It 'creates a user with operation save, welcome_email flag and normalized locations' {
+        New-MosyleUser -Session $script:session -Id student.1 -Name 'Example Student' -Type S -Email s1@school.org `
+            -Location @{ name = 'Cityview Day School'; grade_level = 'Kindergarten' } -WelcomeEmail -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'users' -and
+            $Body.elements[0].operation -eq 'save' -and
+            $Body.elements[0].id -eq 'student.1' -and
+            $Body.elements[0].type -eq 'S' -and
+            $Body.elements[0].welcome_email -eq 1 -and
+            $Body.elements[0].locations[0].grade_level -eq 'Kindergarten'
+        }
+    }
+
+    It 'defaults welcome_email to 0 on create' {
+        New-MosyleUser -Session $script:session -Id staff.1 -Name 'Staff' -Type STAFF -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].welcome_email -eq 0
+        }
+    }
+
+    It 'updates only supplied fields with operation update' {
+        Set-MosyleUser -Session $script:session -Id student.1 -Email new@school.org -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'update' -and
+            $Body.elements[0].id -eq 'student.1' -and
+            $Body.elements[0].email -eq 'new@school.org' -and
+            -not $Body.elements[0].Contains('name') -and
+            -not $Body.elements[0].Contains('welcome_email')
+        }
+    }
+
+    It 'batches a piped roster into one create call' {
+        $roster = @(
+            [pscustomobject]@{ Id = 's1'; Name = 'One'; Type = 'S' }
+            [pscustomobject]@{ Id = 's2'; Name = 'Two'; Type = 'S' }
+        )
+        $roster | New-MosyleUser -Session $script:session -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            @($Body.elements).Count -eq 2 -and $Body.elements[1].id -eq 's2'
+        }
+    }
 }
