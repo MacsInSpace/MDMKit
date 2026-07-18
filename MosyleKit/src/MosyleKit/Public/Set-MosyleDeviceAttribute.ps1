@@ -60,7 +60,7 @@
         if ($elements.Count -eq 0) { return }
         if ($PSCmdlet.ShouldProcess("$($elements.Count) device(s)", 'Update attributes')) {
             $response = Invoke-MosyleRequest -Session $resolved -Endpoint 'devices' -Body @{ elements = @($elements) }
-            Select-MosyleResult -Response $response -Property 'elements', 'response'
+            Select-MosyleResult -Response $response -Property 'devices', 'elements'
         }
     }
 }

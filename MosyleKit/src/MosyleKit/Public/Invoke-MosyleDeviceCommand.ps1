@@ -6,7 +6,10 @@
         Targets devices by -Device (UDIDs) and/or -Group (device group IDs) — if a group
         is given, UDIDs are optional. Supported commands and their extra parameters:
 
-          Restart, Shutdown          (targeting only)
+          Restart, Shutdown, Unassign        (targeting only; Unassign = move to Limbo)
+          ClearCommands,
+          ClearPendingCommands,
+          ClearFailedCommands                (targeting only; clear queued MDM commands)
           Lock                       -Pincode (6-digit, macOS), -PhoneNumber, -LockMessage
           Wipe                       -RevokeVppLicenses, -PreserveDataPlan,
                                      -DisallowProximitySetup, -EnableReturnToService,
@@ -27,7 +30,9 @@
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory, Position = 0)]
-        [ValidateSet('Restart', 'Shutdown', 'Wipe', 'Lock', 'EnableActivationLock', 'DisableActivationLock')]
+        [ValidateSet('Restart', 'Shutdown', 'Wipe', 'Lock', 'Unassign',
+            'ClearCommands', 'ClearPendingCommands', 'ClearFailedCommands',
+            'EnableActivationLock', 'DisableActivationLock')]
         [string] $Command,
 
         [Parameter(ValueFromPipelineByPropertyName)]
@@ -66,6 +71,10 @@
             Shutdown              = 'shutdown_devices'
             Wipe                  = 'wipe_devices'
             Lock                  = 'lock_device'
+            Unassign              = 'change_to_limbo'
+            ClearCommands         = 'clear_commands'
+            ClearPendingCommands  = 'clear_pending_commands'
+            ClearFailedCommands   = 'clear_failed_commands'
             EnableActivationLock  = 'enable_activationlock'
             DisableActivationLock = 'disable_activationlock'
         }
@@ -126,7 +135,7 @@
                 Write-Warning "$Command — devices not found: $(@($notFound[0].Value) -join ', ')"
             }
             $statusProp = $item.PSObject.Properties.Match('status')
-            if ($statusProp.Count -gt 0 -and $statusProp[0].Value -notin 'COMMAND_SENT', 'OK') {
+            if ($statusProp.Count -gt 0 -and $statusProp[0].Value -notin 'COMMAND_SENT', 'COMMAND_CLEARED', 'OK') {
                 $infoProp = $item.PSObject.Properties.Match('info')
                 $info = if ($infoProp.Count -gt 0) { $infoProp[0].Value } else { '' }
                 Write-Warning "$Command — $($statusProp[0].Value): $info"

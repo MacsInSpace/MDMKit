@@ -6,6 +6,35 @@ All notable changes to MosyleKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0-alpha] - 2026-07-19
+
+### Added
+- `Remove-MosyleUser` (/users delete) and `Set-MosyleDeviceOwner`
+  (/users assign_device) — batched when piped.
+- `Invoke-MosyleLostMode` (/lostmode): Enable/Disable/PlaySound/RequestLocation
+  with message, phone number and footnote.
+- Extended `Invoke-MosyleDeviceCommand`: Unassign (change_to_limbo) and
+  ClearCommands / ClearPendingCommands / ClearFailedCommands, with the
+  COMMAND_CLEARED status treated as success.
+- Classes: `Get-MosyleClass`, `New-MosyleClass`, `Remove-MosyleClass`.
+- Dynamic device groups: `Get-MosyleDeviceGroup`, `Get-MosyleDeviceGroupDevice`,
+  `Set-MosyleDeviceGroupMember` (top-level `update_devices` payload).
+- Custom device attributes: `Get-/New-/Set-/Remove-MosyleCustomAttribute`.
+- `Get-MosyleActionLog` (/adminlogs, `filter_options`).
+
+### Changed
+- `Select-MosyleResult` now unwraps nested `response` objects/arrays as well as
+  top-level keys — so list endpoints that wrap their payload under `response`
+  (e.g. `/listdevices` → `response.devices`) return the collection directly.
+
+### Notes
+- All shapes above are taken from the full Mosyle API docs. Two documented
+  quirks are handled deliberately: the custom-attribute delete operation is
+  singular (`delete_custom_device_attribute`), and `/devicegroups` +
+  `/adminlogs` use non-standard body keys. Activation Lock is documented at
+  `/v1/bulkops` in one place while every other bulkops op is `/v2`; this module
+  uses `/v2` for consistency — flip via Invoke-MosyleApi if a tenant needs v1.
+
 ## [0.2.0-alpha] - 2026-07-18
 
 ### Added

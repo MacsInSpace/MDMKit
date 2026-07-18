@@ -338,4 +338,154 @@ Describe 'User create/update' {
             @($Body.elements).Count -eq 2 -and $Body.elements[1].id -eq 's2'
         }
     }
+
+    It 'deletes users with operation delete' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; elements = @() } }
+        Remove-MosyleUser -Session $script:session -Id student.1 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'users' -and $Body.elements[0].operation -eq 'delete' -and $Body.elements[0].id -eq 'student.1'
+        }
+    }
+
+    It 'assigns a device to a user via assign_device' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; elements = @() } }
+        Set-MosyleDeviceOwner -Session $script:session -SerialNumber XABC -User student.1 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'users' -and $Body.elements[0].operation -eq 'assign_device' -and
+            $Body.elements[0].id -eq 'student.1' -and $Body.elements[0].serial_number -eq 'XABC'
+        }
+    }
+}
+
+Describe 'Response unwrapping' {
+    BeforeEach { $script:session = New-TestMosyleSession }
+
+    It 'unwraps a nested response.devices envelope (listdevices real shape)' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = [pscustomobject]@{ devices = @([pscustomobject]@{ serial_number = 'S1' }); rows = 1; page = 0 } }
+        }
+        (Get-MosyleDevice -Session $script:session -Os ios)[0].serial_number | Should -Be 'S1'
+    }
+
+    It 'unwraps groups from a response array (listdevicegroups shape)' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ groups = @([pscustomobject]@{ id = 5; name = 'Carts' }); rows = 1 }) }
+        }
+        (Get-MosyleDeviceGroup -Session $script:session -Os ios)[0].name | Should -Be 'Carts'
+    }
+}
+
+Describe 'Extended device commands' {
+    BeforeEach {
+        $script:session = New-TestMosyleSession
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ status = 'COMMAND_CLEARED'; info = 'Command cleared successfully.' }) }
+        }
+    }
+
+    It 'maps Unassign to change_to_limbo' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command Unassign -Device U1 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'change_to_limbo'
+        }
+    }
+
+    It 'maps ClearFailedCommands and accepts COMMAND_CLEARED without warning' {
+        Invoke-MosyleDeviceCommand -Session $script:session -Command ClearFailedCommands -Device U1 -Confirm:$false `
+            -WarningVariable w -WarningAction SilentlyContinue | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'clear_failed_commands'
+        }
+        $w | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Lost Mode' {
+    BeforeEach {
+        $script:session = New-TestMosyleSession
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ status = 'COMMAND_SENT' }) }
+        }
+    }
+
+    It 'enables lost mode via /lostmode with message and phone' {
+        Invoke-MosyleLostMode -Session $script:session -Action Enable -Device U1 -Message 'Lost' -PhoneNumber '123' -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'lostmode' -and $Body.elements[0].operation -eq 'enable' -and
+            $Body.elements[0].message -eq 'Lost' -and $Body.elements[0].phone_number -eq '123'
+        }
+    }
+
+    It 'requires -Message when enabling' {
+        { Invoke-MosyleLostMode -Session $script:session -Action Enable -Device U1 -Confirm:$false } |
+            Should -Throw '*-Message is required*'
+    }
+
+    It 'sends request_location with no message' {
+        Invoke-MosyleLostMode -Session $script:session -Action RequestLocation -Device U1 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'request_location'
+        }
+    }
+}
+
+Describe 'Classes, groups, custom attributes' {
+    BeforeEach { $script:session = New-TestMosyleSession }
+
+    It 'saves a class with the required fields' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; uuid = '123' } }
+        New-MosyleClass -Session $script:session -Id sci8 -CourseName Science -ClassName '8A' -Location Main -Teacher t.smith -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'classes' -and $Body.elements[0].operation -eq 'save' -and
+            $Body.elements[0].idteacher -eq 't.smith' -and $Body.elements[0].platform -eq 'ios'
+        }
+    }
+
+    It 'deletes a class with operation delete' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK' } }
+        Remove-MosyleClass -Session $script:session -Id sci8 -Confirm:$false
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'classes' -and $Body.elements[0].operation -eq 'delete'
+        }
+    }
+
+    It 'updates dynamic group membership with top-level keys (not elements)' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; response = @() } }
+        Set-MosyleDeviceGroupMember -Session $script:session -GroupId 210 -Add U1, U2 -Remove U3 -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'devicegroups' -and
+            $Body.operation -eq 'update_devices' -and $Body.idgroup -eq 210 -and
+            (@($Body.add) -join ',') -eq 'U1,U2' -and (@($Body.remove) -join ',') -eq 'U3' -and
+            -not $Body.ContainsKey('elements')
+        }
+    }
+
+    It 'lists custom attributes with the list operation' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ status = 'OK'; info = @([pscustomobject]@{ Name = 'Owner' }) }) }
+        }
+        Get-MosyleCustomAttribute -Session $script:session -Os mac | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'customdeviceattribute' -and $Body.elements[0].operation -eq 'list_custom_device_attributes'
+        }
+    }
+
+    It 'deletes a custom attribute with the singular operation name' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; response = @() } }
+        Remove-MosyleCustomAttribute -Session $script:session -Os mac -UniqueId owner -Confirm:$false | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Body.elements[0].operation -eq 'delete_custom_device_attribute'
+        }
+    }
+
+    It 'queries action logs via filter_options not options' {
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{ status = 'OK'; response = @([pscustomobject]@{ logs = @() }) }
+        }
+        Get-MosyleActionLog -Session $script:session -StartDate 1700000000 -UserId admin1 | Out-Null
+        Should -Invoke -ModuleName MosyleKit Invoke-MosyleRequest -Times 1 -Exactly -ParameterFilter {
+            $Endpoint -eq 'adminlogs' -and $Body.filter_options.start_date -eq 1700000000 -and
+            $Body.filter_options.idusers[0] -eq 'admin1'
+        }
+    }
 }

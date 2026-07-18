@@ -43,14 +43,23 @@ Import-Csv roster.csv | New-MosyleUser
 Set-MosyleUser -Id student.1 -Email new.address@school.org
 ```
 
-## Cmdlets (v0.2)
+## Cmdlets (v0.3)
 
 | Area | Cmdlets |
 |---|---|
 | Session | `Connect-Mosyle`, `Disconnect-Mosyle`, `Get-MosyleSession` |
 | Whole API | `Invoke-MosyleApi` |
-| Devices | `Get-MosyleDevice`, `Invoke-MosyleDeviceCommand`, `Set-MosyleDeviceAttribute` |
-| Users | `Get-MosyleUser`, `New-MosyleUser`, `Set-MosyleUser` |
+| Devices | `Get-MosyleDevice`, `Invoke-MosyleDeviceCommand`, `Set-MosyleDeviceAttribute`, `Invoke-MosyleLostMode`, `Set-MosyleDeviceOwner` |
+| Device groups | `Get-MosyleDeviceGroup`, `Get-MosyleDeviceGroupDevice`, `Set-MosyleDeviceGroupMember` |
+| Users | `Get-MosyleUser`, `New-MosyleUser`, `Set-MosyleUser`, `Remove-MosyleUser` |
+| Classes | `Get-MosyleClass`, `New-MosyleClass`, `Remove-MosyleClass` |
+| Custom attributes | `Get-/New-/Set-/Remove-MosyleCustomAttribute` |
+| Logs | `Get-MosyleActionLog` |
+
+`Invoke-MosyleDeviceCommand` covers Restart, Shutdown, Wipe, Lock, Unassign,
+ClearCommands / ClearPendingCommands / ClearFailedCommands, and Enable/Disable
+Activation Lock. Anything without a typed cmdlet (District accounts, Cisco ISE,
+the logs-stream host) is reachable via `Invoke-MosyleApi`.
 
 ## Status &amp; roadmap
 

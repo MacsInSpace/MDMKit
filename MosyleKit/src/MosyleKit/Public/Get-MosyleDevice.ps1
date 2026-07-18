@@ -57,5 +57,5 @@
     if ($null -ne $Column -and $Column.Count -gt 0) { $requestOptions['specific_columns'] = @($Column) }
 
     $response = Invoke-MosyleRequest -Session $resolved -Endpoint 'listdevices' -Body @{ options = $requestOptions }
-    Select-MosyleResult -Response $response -Property 'devices', 'response'
+    Select-MosyleResult -Response $response -Property 'devices'
 }
