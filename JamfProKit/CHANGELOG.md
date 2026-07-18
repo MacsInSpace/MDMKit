@@ -6,6 +6,21 @@ All notable changes to JamfProKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0-alpha] - 2026-07-18
+
+### Added
+- Building and department CRUD (`Get/New/Set/Remove-JamfBuilding`,
+  `Get/New/Set/Remove-JamfDepartment`).
+- Extension attribute CRUD for computers and mobile devices
+  (`Get/New/Set/Remove-JamfExtensionAttribute -Type Computer|MobileDevice`)
+  covering TEXT/POPUP/SCRIPT input types.
+- `Send-JamfMdmCommand`: modern MDM commands (POST /v2/mdm/commands) addressed
+  by managementId or computer serial (auto-resolved), with arbitrary
+  `-CommandData` payloads. `Invoke-JamfFrameworkRedeploy` for broken jamf
+  binaries with a live MDM channel.
+- LAPS: `Get-JamfLapsAccount`, `Get-JamfLapsPassword` (SecureString by default,
+  `-AsPlainText` opt-in; audited-view warning), `Get/Set-JamfLapsSetting`.
+
 ## [0.3.0-alpha] - 2026-07-18
 
 ### Added

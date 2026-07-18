@@ -67,7 +67,7 @@ Invoke-JamfApi -Method POST -Path 'api/v1/buildings' -Body @{ name = 'HQ' }
 Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<department><name>IT</name></department>'
 ```
 
-## Cmdlets (v0.3)
+## Cmdlets (v0.4)
 
 | Area | Cmdlets |
 |---|---|
@@ -78,6 +78,10 @@ Invoke-JamfApi -Method PUT -Path 'JSSResource/departments/id/3' -Body '<departme
 | Categories | `Get-JamfCategory`, `New-JamfCategory`, `Set-JamfCategory`, `Remove-JamfCategory` |
 | Groups | `Get-JamfGroup`, `New-JamfGroup`, `Set-JamfGroup`, `Remove-JamfGroup`, `New-JamfCriterion` |
 | Packages | `Get-JamfPackage`, `New-JamfPackage`, `Set-JamfPackage`, `Remove-JamfPackage`, `Publish-JamfPackage` |
+| Buildings / Departments | `Get/New/Set/Remove-JamfBuilding`, `Get/New/Set/Remove-JamfDepartment` |
+| Extension attributes | `Get/New/Set/Remove-JamfExtensionAttribute` (computer + mobile device) |
+| MDM | `Send-JamfMdmCommand`, `Invoke-JamfFrameworkRedeploy` |
+| LAPS | `Get-JamfLapsAccount`, `Get-JamfLapsPassword`, `Get-JamfLapsSetting`, `Set-JamfLapsSetting` |
 | Policies | `Get-JamfPolicy` |
 | Bulk (MUT) | `Update-JamfComputer`, `Update-JamfMobileDevice`, `Update-JamfUser`, `Set-JamfStaticGroupMember`, `Set-JamfPrestageScope` |
 
@@ -85,7 +89,7 @@ All destructive verbs support `-WhatIf`/`-Confirm`. All cmdlets accept `-Session
 
 ## Roadmap
 
-- Typed CRUD for buildings, departments, extension attributes, prestages, MDM commands, LAPS
+- Typed CRUD for prestage enrollments, policies (write), configuration profiles
 - Direct-to-S3 JCDS2 multipart upload (for very large packages / resumable transfers)
 - Spec-driven generic cmdlets fed by your instance's live OpenAPI schema (`/api/schema`) with tab completion
 - Jamf Platform API gateway auth (`auth_provider: platform`)
