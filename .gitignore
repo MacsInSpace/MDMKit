@@ -1,0 +1,5 @@
+dist/
+*.nupkg
+.DS_Store
+testResults.xml
+coverage.xml
