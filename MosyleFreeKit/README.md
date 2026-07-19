@@ -37,6 +37,7 @@ suspicion it deserves.
 | Doc | Topic |
 |-----|--------|
 | [docs/AUTH.md](docs/AUTH.md) | **Start here** — connecting, cookie formats, troubleshooting |
+| [ChromePlugin/](ChromePlugin/) | Free Unlock extension + **Copy session for FreeKit** |
 | [docs/ENDPOINTS.md](docs/ENDPOINTS.md) | Endpoint reference: every operation, its body fields, the cmdlet that drives it, and the traps |
 | [docs/LIMITS.md](docs/LIMITS.md) | Soft-OK traps, supervised vs unsupervised, Shared Device Groups, platforms |
 | [docs/AGENT-HANDOFF.md](docs/AGENT-HANDOFF.md) | Discovery notes and open questions |
@@ -47,8 +48,9 @@ suspicion it deserves.
 ```powershell
 Import-Module ./src/MosyleFreeKit/MosyleFreeKit.psd1
 
-# Guided first run: prints the click-path, takes a paste, detects your school.
-# -SaveCookie means later runs just work. See docs/AUTH.md.
+# Guided first run: opens Mosyle, prefers Free Unlock "Copy session for FreeKit",
+# takes a paste, detects your school. -SaveCookie means later runs just work.
+# See docs/AUTH.md and ChromePlugin/README.md.
 Connect-MosyleFree -SaveCookie
 
 Get-MosyleFreeDevice -Os ios | Select-Object -First 5 deviceudid, serial_number, device_name
@@ -68,7 +70,7 @@ Remove-MosyleFreeDeviceSharedGroup -Device $udid -WhatIf
 New-MosyleFreeSharedDeviceGroup -Name 'FreeKit Temp' -WhatIf
 ```
 
-## Cmdlets (v0.5.0)
+## Cmdlets (v0.5.1)
 
 `-Os ios|mac|tvos|visionos` on Connect and device cmdlets. **iOS** is live-validated; **mac/tvOS/visionOS** use the same Free bus (list/session OK) — command delivery is best-effort until you have a test device (see [docs/LIMITS.md](docs/LIMITS.md)).
 

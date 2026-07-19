@@ -1,0 +1,43 @@
+/* Hide cosmetic Premium badges when unlock is on */
+html.mosyle-free-unlock-on .premium_label,
+html.mosyle-free-unlock-on .premium-label,
+body.mosyle-free-unlock-on .premium_label,
+body.mosyle-free-unlock-on .premium-label {
+  display: none !important;
+}
+
+/* Top yellow upgrade / trial bar */
+html.mosyle-free-unlock-on #trialbar,
+body.mosyle-free-unlock-on #trialbar {
+  display: none !important;
+}
+
+/* Kill the Free-plan upsell overlay if it still appears */
+html.mosyle-free-unlock-on #alert_premium_feature,
+body.mosyle-free-unlock-on #alert_premium_feature {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+html.mosyle-free-unlock-on #content_premium_feature:not(:empty),
+body.mosyle-free-unlock-on #content_premium_feature:not(:empty) {
+  display: none !important;
+}
+
+/* Small corner cue so techs know the gate is aside */
+html.mosyle-free-unlock-on body::after {
+  content: "Free Unlock";
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2147483646;
+  padding: 4px 8px;
+  font: 600 11px/1.2 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.02em;
+  color: #0b3d2e;
+  background: #c6f0d8;
+  border: 1px solid #6fbf93;
+  border-radius: 4px;
+  opacity: 0.85;
+  pointer-events: none;
+}

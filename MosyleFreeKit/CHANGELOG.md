@@ -1,5 +1,14 @@
 # MosyleFreeKit changelog
 
+## 0.5.1-alpha
+
+### Easier cookie grab
+- [ChromePlugin](ChromePlugin/) **0.3.0** — **Copy session for FreeKit** reads HttpOnly
+  `PHPSESSID` / `credentials` via `chrome.cookies` and copies a paste-ready `Cookie:` header
+- `Connect-MosyleFree` guided first-run prefers the extension path, opens the school URL in
+  the browser, and keeps DevTools / Copy as cURL as the fallback
+- [docs/AUTH.md](docs/AUTH.md) updated for the extension-first flow
+
 ## 0.5.0-alpha
 
 First release inside the [MDMKit](https://github.com/MacsInSpace/MDMKit) repo.

@@ -4,9 +4,10 @@ Read this first before continuing Free-tier work. Product docs: [AUTH.md](AUTH.m
 
 ## Current version
 
-**v0.5.0-alpha** — build green (`./build.ps1`, 49 Pester tests).  
+**v0.5.1-alpha** — build green (`./build.ps1`, 49 Pester tests).  
 Module: `MosyleFreeKit/` (not MosyleKit). Endpoint discovery was done against a Free tenant;
-tenant-specific identifiers are deliberately not committed.
+tenant-specific identifiers are deliberately not committed. Cookie grab: ChromePlugin 0.3.0
+**Copy session for FreeKit**, or DevTools Copy as cURL (see [AUTH.md](AUTH.md)).
 
 ## What this kit is
 
@@ -24,12 +25,14 @@ kept out of this repo: it is tied to a specific tenant's captured pages.
 
 ## Auth (required for live work)
 
-1. `Connect-MosyleFree -SaveCookie` — guided paste, detects the school, persists to
+1. Prefer ChromePlugin → **Copy session for FreeKit**, then
+   `Connect-MosyleFree -SaveCookie` — guided paste, detects the school, persists to
    `~/.mosylefreekit/cookie.txt` (0600)
 2. Or supply your own: `-Cookie`, `-CookieFile`, or `$env:MOSYLEFREEKIT_COOKIE`
 3. Connect hits GET `/` so `PHPSESSID` lands in the jar; JWT alone often fails `mapping.php`
 
-See [AUTH.md](AUTH.md). Cookie expires — refresh from DevTools if live calls 302 to login.
+See [AUTH.md](AUTH.md). Cookie expires — re-copy from Free Unlock (same browser profile) or
+DevTools if live calls 302 to login.
 
 ## Live devices (iOS)
 

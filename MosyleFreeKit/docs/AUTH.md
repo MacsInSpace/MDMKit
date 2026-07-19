@@ -9,9 +9,9 @@ web session a signed-in browser holds on `https://myschool.mosyle.com/`.
 Connect-MosyleFree
 ```
 
-That's it. With no arguments it prints the click-path, waits for a paste, works out the
-school slug, validates the session, and connects. Add `-SaveCookie` and later runs pick the
-cookie up on their own.
+That's it. With no arguments it opens the school URL, prints the click-path, waits for a
+paste, works out the school slug, validates the session, and connects. Add `-SaveCookie`
+and later runs pick the cookie up on their own.
 
 ## What to paste
 
@@ -19,17 +19,20 @@ Any of these — the module detects the format:
 
 | Format | Where it comes from |
 |--------|--------------------|
-| **Copy as cURL** (recommended) | DevTools → Network → right-click a request → Copy → Copy as cURL |
-| `Cookie: PHPSESSID=…; credentials=…` | DevTools → Network → Request Headers |
+| **`Cookie: PHPSESSID=…; credentials=…`** (recommended) | [ChromePlugin](../ChromePlugin/) → **Copy session for FreeKit** |
+| **Copy as cURL** | DevTools → Network → right-click a request → Copy → Copy as cURL |
 | `PHPSESSID=…` | a single cookie value |
 | Tab-separated rows | DevTools → Application → Cookies, select rows, copy |
 | `[{"name":"PHPSESSID","value":"…"}]` | a cookie-export extension |
 
-**Copy as cURL is the easiest** because the request body carries
+**Preferred:** install [Mosyle Free Unlock](../ChromePlugin/), sign in to Mosyle, click
+**Copy session for FreeKit**, paste into Connect. No DevTools needed.
+
+**Copy as cURL** is the no-extension fallback — and its request body often carries
 `usertab_current_idschool`, so `-IdSchool` is recovered for you.
 
 > Mosyle's session cookies are **HttpOnly** — they never appear in `document.cookie`.
-> They have to come from DevTools or an export add-on.
+> Use the Free Unlock extension (`chrome.cookies`), DevTools, or an export add-on.
 
 ## Cookie types
 
@@ -75,7 +78,7 @@ With no TTY the walkthrough is skipped and Connect throws rather than hanging.
 
 | Error | Fix |
 |-------|-----|
-| `returned the login page` | Cookie expired or from another browser profile. Grab a fresh one. |
+| `returned the login page` | Cookie expired or from another browser profile. Re-copy from Free Unlock (same profile you signed in with) or DevTools. |
 | `Could not detect the school slug` | Pass `-IdSchool` explicitly. |
 | `device list returned an error` | The slug doesn't match the login you used. |
 | `Neither PHPSESSID nor credentials` (warning) | You copied the wrong header or row. |

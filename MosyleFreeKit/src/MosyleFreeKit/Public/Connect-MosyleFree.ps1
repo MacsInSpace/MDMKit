@@ -10,17 +10,18 @@
 
             Connect-MosyleFree
 
-        You can paste any of these and it will work out the rest:
+        Preferred path: the Mosyle Free Unlock Chrome extension → Copy session for FreeKit,
+        then paste here. You can also paste any of these:
 
-          * the whole "Copy as cURL" blob from DevTools > Network (easiest - it carries
-            the school slug too, so you never have to look up -IdSchool)
-          * a Cookie header:  Cookie: PHPSESSID=...; credentials=...
+          * Cookie header from the extension:  Cookie: PHPSESSID=...; credentials=...
+          * the whole "Copy as cURL" blob from DevTools > Network (also carries the school
+            slug, so you never have to look up -IdSchool)
           * a single pair:    PHPSESSID=...
           * rows copied from DevTools > Application > Cookies
           * JSON from a cookie-export extension
 
-        The session cookies are HttpOnly, so document.cookie will not show them - they
-        have to come from DevTools or an export add-on.
+        The session cookies are HttpOnly, so document.cookie will not show them - use the
+        extension (chrome.cookies) or DevTools / an export add-on.
 
         -SaveCookie writes the working cookie to disk (0600) so later runs just work;
         subsequent connects find it automatically.
@@ -128,16 +129,34 @@
             Write-Host ''
             Write-Host 'Connect to Mosyle Manager Free' -ForegroundColor Cyan
             Write-Host '------------------------------'
-            Write-Host "Mosyle's session cookies are HttpOnly, so they have to come from DevTools."
+            Write-Host "Mosyle's session cookies are HttpOnly — easiest grab is the Free Unlock extension."
             Write-Host ''
-            Write-Host "  1. Sign in to $base as a school admin." -ForegroundColor Yellow
-            Write-Host '  2. Open DevTools (F12) and click the Network tab.' -ForegroundColor Yellow
-            Write-Host '  3. Click anything in the Mosyle UI so a request appears.' -ForegroundColor Yellow
-            Write-Host '  4. Right-click that request > Copy > Copy as cURL.' -ForegroundColor Yellow
+            Write-Host '  Preferred (Chrome / Edge / Brave + Mosyle Free Unlock):' -ForegroundColor Green
+            Write-Host "    1. Sign in to $base as a school admin." -ForegroundColor Yellow
+            Write-Host '    2. Click the Free Unlock extension icon.' -ForegroundColor Yellow
+            Write-Host '    3. Click "Copy session for FreeKit".' -ForegroundColor Yellow
+            Write-Host '    4. Paste below, then press Enter on a blank line.' -ForegroundColor Yellow
             Write-Host ''
-            Write-Host '  Paste it below, then press Enter on a blank line.'
-            Write-Host '  (A plain "PHPSESSID=..." works too.)' -ForegroundColor DarkGray
+            Write-Host '  Fallback (no extension): DevTools > Network > Copy as cURL.' -ForegroundColor DarkGray
+            Write-Host '  Extension folder: ChromePlugin/ next to this module (see its README).' -ForegroundColor DarkGray
             Write-Host ''
+
+            try {
+                if ($IsMacOS) {
+                    & /usr/bin/open $base
+                }
+                elseif ($IsWindows) {
+                    Start-Process $base
+                }
+                elseif ($IsLinux) {
+                    & xdg-open $base
+                }
+                Write-Host "  Opened $base in your default browser." -ForegroundColor DarkGray
+                Write-Host ''
+            }
+            catch {
+                Write-Verbose "Could not open browser: $($_.Exception.Message)"
+            }
 
             $lines = [System.Collections.Generic.List[string]]::new()
             while ($true) {

@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'MosyleFreeKit.psm1'
-    ModuleVersion        = '0.5.0'
+    ModuleVersion        = '0.5.1'
     GUID                 = 'a7c3e9f2-4b1d-4e8a-9c5f-2d6b8a0e1f44'
     Author               = 'Craig Hair'
     CompanyName          = 'Unknown'
@@ -36,7 +36,7 @@
             Tags         = @('Mosyle', 'MDM', 'Apple', 'iOS', 'Education', 'MacAdmins', 'Free', 'UI')
             LicenseUri   = 'https://github.com/MacsInSpace/MDMKit/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/MacsInSpace/MDMKit'
-            ReleaseNotes = 'v0.5.0: guided Connect-MosyleFree with cURL/header/table/JSON cookie parsing, school auto-detection, -SaveCookie, and actionable connect errors.'
+            ReleaseNotes = 'v0.5.1: Connect-MosyleFree prefers Mosyle Free Unlock "Copy session for FreeKit"; ChromePlugin 0.3.0 copies HttpOnly cookies to the clipboard.'
             Prerelease   = 'alpha'
         }
     }

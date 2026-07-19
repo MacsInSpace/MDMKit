@@ -7,7 +7,7 @@ Modern, cross-platform PowerShell 7 modules for Apple MDM platforms — built fo
 | **[JamfProKit](JamfProKit/)** | v0.5.0-alpha | [Jamf Pro](https://www.jamf.com/products/jamf-pro/) — Jamf Pro API (JSON) + Classic API (XML) |
 | **[JamfSchoolKit](JamfSchoolKit/)** | v0.1.0-alpha | [Jamf School](https://www.jamf.com/products/jamf-school/) — Jamf School API (first PowerShell module for it) |
 | **[MosyleKit](MosyleKit/)** | v0.3.0-alpha | [Mosyle Manager](https://mosyle.com/) — Mosyle Manager API (JWT) |
-| **[MosyleFreeKit](MosyleFreeKit/)** | v0.5.0-alpha | [Mosyle Manager **Free**](https://mosyle.com/) — browser session, no paid API token |
+| **[MosyleFreeKit](MosyleFreeKit/)** | v0.5.1-alpha | [Mosyle Manager **Free**](https://mosyle.com/) — browser session, no paid API token |
 
 One repo, one module per platform. Each MDM has its own API — different auth, versioning and
 conventions — so each gets a module that fits it properly rather than a lowest-common-denominator

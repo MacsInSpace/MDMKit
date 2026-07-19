@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Mosyle Free Unlock",
+  "version": "0.3.0",
+  "description": "Tech tool: puts aside Mosyle Manager Free Premium UI gates, and copies the browser session for MosyleFreeKit. Does not grant paid API access. See README.md.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Mosyle Free Unlock",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "permissions": ["storage", "cookies"],
+  "host_permissions": [
+    "https://myschool.mosyle.com/*",
+    "https://*.mosyle.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://myschool.mosyle.com/*",
+        "https://business.mosyle.com/*",
+        "https://*.mosyle.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["unlock.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page.js"],
+      "matches": [
+        "https://myschool.mosyle.com/*",
+        "https://business.mosyle.com/*",
+        "https://*.mosyle.com/*"
+      ]
+    }
+  ]
+}
