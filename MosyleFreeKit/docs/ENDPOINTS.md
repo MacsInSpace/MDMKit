@@ -45,7 +45,7 @@ All `Controller/mapping.php` unless noted. `{udid}` = `deviceudid`, `{serial}` =
 | Clear commands | works | `CommandController` / `device_clear_commands` | `command_status` (**not** `status`) | `… -Command ClearCommands` |
 | Send push | works | `BulkOperationsController` / `bulk_send_push` | — | `… -Command SendPush` |
 | Update info | works | `BulkOperationsController` / `update_info` | — | `… -Command UpdateInfo` |
-| Wipe | works | `BulkOperationsController` / `wipe_device` | `pin_code`, `password` | `… -Command Wipe` |
+| Wipe | works | `BulkOperationsController` / `wipe_device` | `serial_number` (**required** — soft-OKs without it, never queues), `IsM1orT2`, `password` (**key always posted**, empty ok), `pin_code`, erase options: `EnableReturnToService`, `EnableReturnToServiceProfileID`, `PreserveDataPlan`, `PreserveDeviceName`, `DisallowProximitySetup`, `RevokeVPPLicenses`, `SendToLimbo`, `ClearActivationLockBypassCode`. **No `devices` field** (unlike Restart/Shutdown). Captured live 2026-07-23 | `… -Command Wipe` |
 | Activation Lock on | works | `BulkOperationsController` / `bulk_enable_activation_lock` | `lost_message` (required) | `… -Command EnableActivationLock` |
 | Activation Lock off | works | `BulkOperationsController` / `disable_activationlock` | — | `… -Command DisableActivationLock` |
 | Unassign / limbo | works | `DeviceInfoController` / `change_to_limbo` | `action` = `remove_apps` 0/1 | `… -Command Unassign`, `Set-MosyleFreeDeviceLimbo` |

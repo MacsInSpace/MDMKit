@@ -19,7 +19,11 @@
         observed to soft-OK with no pending row. Use -Verify to check the device
         Commands tab after send (sets Queued on the result). -Verify settles briefly
         and retries so late-appearing rows (e.g. Restart OS) are not missed.
-        Wipe requires -Confirm.
+
+        Wipe requires -Confirm AND the device serial (pass -SerialNumber or pipe
+        Get-MosyleFreeDevice objects) - the UI posts serial_number with the erase and
+        the server soft-OKs without it. Erase options (Return to Service, preserve
+        data plan, revoke VPP, ...) go in -Option with the UI's own field names.
 
         Supply -AdminCredential on Connect-MosyleFree (or here) when Mosyle requires
         the security-confirm password.
@@ -54,8 +58,18 @@
         [Alias('LostMessage')]
         [string] $Message,
 
+        # Wipe only: extra erase options merged into the POST body verbatim, e.g.
+        # @{ EnableReturnToService = '1'; EnableReturnToServiceProfileID = '7';
+        #    PreserveDataPlan = '1'; RevokeVPPLicenses = '1'; SendToLimbo = '1';
+        #    ClearActivationLockBypassCode = '1' } - field names as the Mosyle UI posts them.
+        [hashtable] $Option,
+
+        # Explicit override for the Clear* status; when omitted, each command's own
+        # default applies (ClearFailedCommands -> 'failed', others -> 'pending').
+        # A 'pending' default here would shadow that mapping - do not add one back
+        # (0.5.2 fix: ClearFailedCommands was silently posting command_status=pending).
         [ValidateSet('pending', 'failed', 'error', '')]
-        [string] $CommandStatus = 'pending',
+        [string] $CommandStatus,
 
         [int] $DelayMs = 400,
 
@@ -178,8 +192,17 @@
                     if ($password) { $body['password'] = $password }
                 }
                 'Wipe' {
+                    # Real UI capture (2026-07-23, ADE iPad DMPCJTEJMDFT): the Erase dialog
+                    # posts deviceudid + serial_number + os + IsM1orT2 + password (the key is
+                    # ALWAYS present, empty when no security-confirm was raised) and there is
+                    # NO 'devices' field (unlike Restart/Shutdown). A wipe without
+                    # serial_number soft-OKs {"status":"OK"} and never queues.
                     if ($PSBoundParameters.ContainsKey('Pincode')) { $body['pin_code'] = [string]$Pincode }
-                    if ($password) { $body['password'] = $password }
+                    $body['IsM1orT2'] = '0'
+                    $body['password'] = if ($password) { $password } else { '' }
+                    if ($null -ne $Option) {
+                        foreach ($k in $Option.Keys) { $body[$k] = [string]$Option[$k] }
+                    }
                 }
                 'Unassign' {
                     # change_to_limbo
@@ -198,6 +221,19 @@
 
             if ($serialByDevice.ContainsKey($udid)) {
                 $body['serial_number'] = $serialByDevice[$udid]
+            }
+
+            if ($Command -eq 'Wipe' -and -not $body.Contains('serial_number')) {
+                [pscustomobject]@{
+                    PSTypeName = 'MosyleFreeKit.CommandResult'
+                    Device     = $udid
+                    Command    = $Command
+                    Ok         = $false
+                    WhatIf     = $false
+                    Queued     = $null
+                    Error      = 'Wipe requires serial_number (soft-OKs without it) - pass -SerialNumber or pipe Get-MosyleFreeDevice objects.'
+                }
+                continue
             }
 
             $target = "$Command → $udid"

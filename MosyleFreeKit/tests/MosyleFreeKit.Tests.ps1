@@ -266,12 +266,107 @@ Describe 'Invoke-MosyleFreeDeviceCommand' {
         }
     }
 
+    It 'posts command_status=failed for ClearFailedCommands (0.5.2 regression)' {
+        # 0.5.1 bug: the -CommandStatus 'pending' default shadowed the per-command
+        # status mapping, so ClearFailedCommands cleared the pending queue instead.
+        Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp {
+            [pscustomobject]@{
+                StatusCode = 200
+                Headers    = $null
+                Content    = [pscustomobject]@{ status = 'OK' }
+                RawContent = '{"status":"OK"}'
+            }
+        }
+
+        Invoke-MosyleFreeDeviceCommand -Command ClearFailedCommands -Device 'udid-1' `
+            -Session $script:session -Confirm:$false -DelayMs 0 | Out-Null
+
+        Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 1 -Exactly -ParameterFilter {
+            $Form.mapping -eq 'CommandController' -and
+            $Form.operation -eq 'device_clear_commands' -and
+            $Form.command_status -eq 'failed'
+        }
+    }
+
+    It 'lets an explicit -CommandStatus override the per-command default' {
+        Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp {
+            [pscustomobject]@{
+                StatusCode = 200
+                Headers    = $null
+                Content    = [pscustomobject]@{ status = 'OK' }
+                RawContent = '{"status":"OK"}'
+            }
+        }
+
+        Invoke-MosyleFreeDeviceCommand -Command ClearFailedCommands -Device 'udid-1' `
+            -CommandStatus error -Session $script:session -Confirm:$false -DelayMs 0 | Out-Null
+
+        Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 1 -Exactly -ParameterFilter {
+            $Form.command_status -eq 'error'
+        }
+    }
+
     It 'supports -WhatIf without calling HTTP' {
         Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp { throw 'should not call HTTP' }
         $r = Invoke-MosyleFreeDeviceCommand -Command Restart -Device 'udid-1' `
             -Session $script:session -WhatIf
         $r.WhatIf | Should -BeTrue
         $r.Ok | Should -BeTrue
+    }
+
+    It 'posts the captured wipe body shape: serial_number + IsM1orT2 + password, no devices (0.5.3)' {
+        # Live capture 2026-07-23 (ADE iPad): wipe posts deviceudid + serial_number + os +
+        # IsM1orT2 + password (key always present, empty ok) and NO devices field; the
+        # server soft-OKs a wipe without serial_number and never queues it.
+        Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp {
+            [pscustomobject]@{
+                StatusCode = 200
+                Headers    = $null
+                Content    = [pscustomobject]@{ status = 'OK' }
+                RawContent = '{"status":"OK"}'
+            }
+        }
+
+        Invoke-MosyleFreeDeviceCommand -Command Wipe -Device 'udid-1' -SerialNumber 'DMPCTEST1234' `
+            -Session $script:session -Confirm:$false -DelayMs 0 | Out-Null
+
+        Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 1 -Exactly -ParameterFilter {
+            $Form.operation -eq 'wipe_device' -and
+            $Form.serial_number -eq 'DMPCTEST1234' -and
+            $Form.IsM1orT2 -eq '0' -and
+            $Form.Contains('password') -and
+            -not $Form.Contains('devices')
+        }
+    }
+
+    It 'refuses Wipe without a serial instead of soft-OKing (0.5.3)' {
+        Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp { throw 'should not call HTTP' }
+
+        $r = Invoke-MosyleFreeDeviceCommand -Command Wipe -Device 'udid-1' `
+            -Session $script:session -Confirm:$false -DelayMs 0
+        $r.Ok | Should -BeFalse
+        $r.Error | Should -Match 'serial_number'
+
+        Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 0 -Exactly
+    }
+
+    It 'merges -Option erase fields into the wipe body' {
+        Mock -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp {
+            [pscustomobject]@{
+                StatusCode = 200
+                Headers    = $null
+                Content    = [pscustomobject]@{ status = 'OK' }
+                RawContent = '{"status":"OK"}'
+            }
+        }
+
+        Invoke-MosyleFreeDeviceCommand -Command Wipe -Device 'udid-1' -SerialNumber 'DMPCTEST1234' `
+            -Option @{ EnableReturnToService = '1'; EnableReturnToServiceProfileID = '7' } `
+            -Session $script:session -Confirm:$false -DelayMs 0 | Out-Null
+
+        Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 1 -Exactly -ParameterFilter {
+            $Form.EnableReturnToService -eq '1' -and $Form.EnableReturnToServiceProfileID -eq '7'
+        }
     }
 
     It 'posts wipe_device and refuses empty udid' {
@@ -289,7 +384,7 @@ Describe 'Invoke-MosyleFreeDeviceCommand' {
         $empty.Ok | Should -BeFalse
         $empty.Error | Should -Match 'Empty device'
 
-        Invoke-MosyleFreeDeviceCommand -Command Wipe -Device 'udid-1' `
+        Invoke-MosyleFreeDeviceCommand -Command Wipe -Device 'udid-1' -SerialNumber 'DMPCTEST1234' `
             -Session $script:session -Confirm:$false -DelayMs 0 | Out-Null
 
         Should -Invoke -ModuleName MosyleFreeKit Invoke-MosyleFreeHttp -Times 1 -Exactly -ParameterFilter {

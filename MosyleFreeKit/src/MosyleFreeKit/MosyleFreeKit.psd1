@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'MosyleFreeKit.psm1'
-    ModuleVersion        = '0.5.1'
+    ModuleVersion        = '0.5.3'
     GUID                 = 'a7c3e9f2-4b1d-4e8a-9c5f-2d6b8a0e1f44'
     Author               = 'Craig Hair'
     CompanyName          = 'Unknown'

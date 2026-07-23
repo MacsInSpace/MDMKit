@@ -1,5 +1,33 @@
 # MosyleFreeKit changelog
 
+## 0.5.3-alpha
+
+### Fixed
+- **Wipe never queued** — the endpoint map had `wipe_device` down as `pin_code` + `password`
+  only. A live capture of the real Erase dialog (2026-07-23, ADE iPad) shows the UI posts
+  `deviceudid` + `serial_number` + `os` + `IsM1orT2` + `password` (key always present, empty
+  when no security-confirm) and **no** `devices` field; the server **soft-OKs a wipe without
+  `serial_number` and never queues it**. The Wipe branch now posts the captured shape, and a
+  wipe without a known serial is refused with a per-device error instead of soft-OKing
+  (pass `-SerialNumber` or pipe `Get-MosyleFreeDevice` objects). `docs/ENDPOINTS.md` corrected.
+
+### Added
+- `-Option` hashtable on `Invoke-MosyleFreeDeviceCommand` (Wipe only) — erase options merged
+  into the POST body verbatim with the UI's own field names: `EnableReturnToService`,
+  `EnableReturnToServiceProfileID` (Wi-Fi profile id), `PreserveDataPlan`,
+  `PreserveDeviceName`, `DisallowProximitySetup`, `RevokeVPPLicenses`, `SendToLimbo`,
+  `ClearActivationLockBypassCode`.
+
+## 0.5.2-alpha
+
+### Fixed
+- `Invoke-MosyleFreeDeviceCommand -Command ClearFailedCommands` was silently posting
+  `command_status=pending` (clearing the pending queue instead of the failed one): the
+  `-CommandStatus` parameter's `'pending'` default always shadowed the per-command status
+  mapping. The default is gone - each Clear* command now uses its own status
+  (`ClearFailedCommands` -> `failed`) unless `-CommandStatus` is passed explicitly.
+  Found in the field via a post-send queue verify (failed rows still present after "clear").
+
 ## 0.5.1-alpha
 
 ### Easier cookie grab
