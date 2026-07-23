@@ -84,10 +84,12 @@ Planned, pending payload confirmation from the API docs:
 - Dynamic & shared device groups, custom device attributes, action logs
 - Shared request/retry core with the other JamfKit modules at build time
 
-The operation map extracted from the Mosyle docs lives at
-[`../../mosyle-api-docs/MOSYLE-API-MAP.md`](../../mosyle-api-docs/MOSYLE-API-MAP.md) (outside the
-module tree). If you have a doc article's request/response body, paste it and the matching typed
-cmdlet can be finalized.
+The operation map extracted from the Mosyle docs lives in this repo at
+[`../mosyle-api-docs/MOSYLE-API-MAP.md`](../mosyle-api-docs/MOSYLE-API-MAP.md), with full article
+bodies alongside (re-scraped 2026-07-24 from a live paid tenant; the scraper is
+[`../mosyle-api-docs/tools/extract-articles.js`](../mosyle-api-docs/tools/extract-articles.js)).
+If you have a doc article's request/response body, paste it and the matching typed cmdlet can
+be finalized. Note: the paid API has no update-info / blank-push operation (see the map).
 
 ## Development
 
