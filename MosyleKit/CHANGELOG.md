@@ -6,6 +6,22 @@ All notable changes to MosyleKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1-alpha] - 2026-07-24
+
+First fixes from a live paid tenant (both found on the first real device-list run).
+
+### Fixed
+- `Get-MosyleDevice`: empty / past-the-end pages answer
+  `{ status = 'DEVICES_NOTFOUND'; info = 'No devices found' }` with no `devices` property,
+  and the lossless unwrap surfaced that marker as if it were a device row - page loops
+  never hit an empty batch and ran to their caps. The marker (status present, no
+  `serial_number`/`deviceudid`) now returns an empty result. Real device records that
+  legitimately carry `status` (e.g. `INSTALLED`) are untouched.
+- `-Page` documentation: the server is **1-based** and clamps page 0 to page 1 (verified
+  live: `page=0` and `page=1` return identical data), so a 0-based walk fetched the first
+  page twice. Loop from 1. Other list cmdlets that share `Select-MosyleResult` may surface
+  the same marker shape on empty results - not yet addressed there.
+
 ## [0.3.0-alpha] - 2026-07-19
 
 ### Added

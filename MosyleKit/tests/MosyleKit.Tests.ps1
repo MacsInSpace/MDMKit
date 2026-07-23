@@ -169,6 +169,32 @@ Describe 'Typed cmdlets' {
         }
     }
 
+    It 'Get-MosyleDevice returns empty on a DEVICES_NOTFOUND marker page (0.3.1 regression)' {
+        # Past-the-end pages answer { status = DEVICES_NOTFOUND; info } with no devices
+        # property; the lossless unwrap surfaced that marker as a fake device row, so
+        # page loops never hit an empty batch (found live 2026-07-24, EKC tenant).
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{
+                status   = 'OK'
+                response = @([pscustomobject]@{ status = 'DEVICES_NOTFOUND'; info = 'No devices found' })
+            }
+        }
+        $result = Get-MosyleDevice -Session $script:session -Os ios -Page 99
+        @($result).Count | Should -Be 0
+    }
+
+    It 'Get-MosyleDevice keeps real devices that carry a status property' {
+        # Device records legitimately have status (e.g. INSTALLED) - only the id-less
+        # marker shape may be swallowed.
+        Mock -ModuleName MosyleKit Invoke-MosyleRequest {
+            [pscustomobject]@{
+                status   = 'OK'
+                devices  = @([pscustomobject]@{ serial_number = 'S1'; status = 'INSTALLED' })
+            }
+        }
+        (Get-MosyleDevice -Session $script:session -Os ios)[0].status | Should -Be 'INSTALLED'
+    }
+
     It 'Invoke-MosyleApi reaches any endpoint and runs reads without confirmation' {
         Mock -ModuleName MosyleKit Invoke-MosyleRequest { [pscustomobject]@{ status = 'OK'; groups = @() } }
         Invoke-MosyleApi -Session $script:session -Endpoint listdynamicgroups | Out-Null

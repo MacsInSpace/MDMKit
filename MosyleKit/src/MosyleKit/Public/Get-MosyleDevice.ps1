@@ -13,7 +13,9 @@
         Specific attributes to return, e.g. serial_number, device_name, os, total_disk,
         battery, is_supervised. Omit for the full record.
     .PARAMETER Page
-        0-based page number for paginated results.
+        Page number for paginated results. The server is 1-BASED and clamps page 0 to
+        page 1 (verified live 2026-07-24: page=0 and page=1 return identical data) -
+        loop from 1, or a 0-based walk fetches the first page twice.
     .EXAMPLE
         Get-MosyleDevice -Os ios
     .EXAMPLE
@@ -57,5 +59,19 @@
     if ($null -ne $Column -and $Column.Count -gt 0) { $requestOptions['specific_columns'] = @($Column) }
 
     $response = Invoke-MosyleRequest -Session $resolved -Endpoint 'listdevices' -Body @{ options = $requestOptions }
-    Select-MosyleResult -Response $response -Property 'devices'
+    $devices = Select-MosyleResult -Response $response -Property 'devices'
+
+    # Empty / past-the-end pages have no 'devices' property at all - the server answers
+    # { status = 'DEVICES_NOTFOUND'; info = 'No devices found' } and the lossless unwrap
+    # would surface that marker as if it were a device row (verified live 2026-07-24).
+    # Detect it (status present, no device id fields) and return an empty result instead,
+    # so page loops terminate on an empty batch.
+    $first = @($devices) | Select-Object -First 1
+    if ($null -ne $first -and $first -isnot [string] -and
+        $first.PSObject.Properties['status'] -and
+        -not $first.PSObject.Properties['serial_number'] -and
+        -not $first.PSObject.Properties['deviceudid']) {
+        return @()
+    }
+    $devices
 }
