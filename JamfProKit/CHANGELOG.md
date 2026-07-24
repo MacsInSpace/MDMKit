@@ -6,6 +6,28 @@ All notable changes to JamfProKit are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0-alpha] - 2026-07-24
+
+### Added
+- `Send-JamfBlankPush` — APNs wake-up via `POST /api/v2/mdm/blank-push`;
+  computers and mobile devices share the endpoint, addressed by managementId.
+  (Since Jamf Pro 10.48 the server sends a DeclarativeManagement request in
+  place of a bare blank push — same "kick the queue" effect.)
+- `Clear-JamfMdmCommand` — cancel queued MDM commands via the Classic
+  `commandflush` endpoint (`-ComputerId`/`-MobileDeviceId`, `-Status
+  Pending|Failed|Pending+Failed`). Requires the 'Flush MDM Commands'
+  privilege (Jamf Pro Server Actions).
+
+### Changed
+- `Send-JamfMdmCommand` help documents the wider `/v2/mdm/commands` type set
+  (verified against Jamf Pro 11.29): `ENABLE_LOST_MODE`
+  (`lostModeMessage`/`lostModePhone`/`lostModeFootnote`), `DISABLE_LOST_MODE`,
+  `PLAY_LOST_MODE_SOUND`, `DEVICE_LOCATION`, and `DEVICE_INFORMATION` (the
+  API-side "update inventory" — the Classic `computercommands` UpdateInventory/
+  BlankPush names are gone from current Jamf Pro builds). DEVICE_INFORMATION
+  requires a `queries` array in `-CommandData` (schema `minItems: 1`; a bare
+  command returns HTTP 500 SYSTEM_EXCEPTION — live-tested on 11.29).
+
 ## [0.5.0-alpha] - 2026-07-18
 
 ### Added

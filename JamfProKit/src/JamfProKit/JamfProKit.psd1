@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'JamfProKit.psm1'
-    ModuleVersion        = '0.5.0'
+    ModuleVersion        = '0.6.0'
     GUID                 = 'b7f3d9e4-2a61-4c8f-9d05-8e1a6f4c3b27'
     Author               = 'Craig Hair'
     CompanyName          = 'Unknown'
@@ -52,6 +52,8 @@
         'Set-JamfExtensionAttribute'
         'Remove-JamfExtensionAttribute'
         'Send-JamfMdmCommand'
+        'Send-JamfBlankPush'
+        'Clear-JamfMdmCommand'
         'Invoke-JamfFrameworkRedeploy'
         'Get-JamfLapsAccount'
         'Get-JamfLapsPassword'
@@ -73,7 +75,7 @@
             Tags         = @('Jamf', 'JamfPro', 'MDM', 'Apple', 'macOS', 'iOS', 'MacAdmins', 'REST', 'API')
             LicenseUri   = 'https://github.com/MacsInSpace/MDMKit/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/MacsInSpace/MDMKit'
-            ReleaseNotes = 'Initial scaffold: session/auth core (OAuth client credentials + user bearer), request engine with retry/backoff, paging, Classic XML support, first typed cmdlets and MUT-compatible bulk updates.'
+            ReleaseNotes = 'MDM command surface: Send-JamfBlankPush (v2 blank-push) and Clear-JamfMdmCommand (Classic commandflush); Send-JamfMdmCommand help now documents the full command-type set incl. DEVICE_INFORMATION and Lost Mode.'
             Prerelease   = 'alpha'
         }
     }

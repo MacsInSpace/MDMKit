@@ -10,7 +10,12 @@
 
         Common command types: RESTART_DEVICE, SHUT_DOWN_DEVICE, DEVICE_LOCK,
         ERASE_DEVICE, SET_RECOVERY_LOCK, LOG_OUT_USER, SETTINGS,
-        ENABLE_LOST_MODE, DISABLE_LOST_MODE. The server validates type and payload.
+        ENABLE_LOST_MODE, DISABLE_LOST_MODE, PLAY_LOST_MODE_SOUND, DEVICE_LOCATION,
+        DEVICE_INFORMATION (asks the device to report inventory data - the API-side
+        "update info"; REQUIRES -CommandData @{ queries = @('DeviceName', ...) } with at
+        least one Apple DeviceInformation query, else the server returns HTTP 500).
+        The server validates type and payload. For a blank push use Send-JamfBlankPush;
+        to cancel queued commands use Clear-JamfMdmCommand.
     .EXAMPLE
         Send-JamfMdmCommand -ComputerSerial C02ABC123 -CommandType RESTART_DEVICE
     .EXAMPLE
